@@ -5,7 +5,7 @@ plugins {
     id("dev.isxander.modstitch.base") version modstitchVersion apply false
     id("dev.isxander.modstitch.shadow") version modstitchVersion apply false
 }
-stonecutter active "1.21.1-neoforge"
+stonecutter active "1.21.1-fabric"
 
 allprojects {
     repositories {
