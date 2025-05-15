@@ -12,7 +12,6 @@ For shulker boxes specifically, [Tweakeroo](https://modrinth.com/mod/tweakeroo) 
 
 <p align="center">
  <a href="https://modrinth.com/mod/stacksizefix"><img src="https://img.shields.io/badge/Modrinth-00AF5C?style=for-the-badge&logo=modrinth&labelColor=16181C" alt="Modrinth downloads"></a>
- <a href="https://curseforge.com/minecraft/mc-mods/stack-size-fix"><img src="https://img.shields.io/badge/CurseForge-F16436?style=for-the-badge&logo=curseforge&labelColor=0D0D0D" alt="CurseForge downloads"></a>
 </p>
 
 <hr>
