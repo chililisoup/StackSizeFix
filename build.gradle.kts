@@ -38,8 +38,9 @@ modstitch {
 
     // Alternatively use stonecutter.eval if you have a lot of versions to target.
     // https://stonecutter.kikugie.dev/stonecutter/guide/setup#checking-versions
-    javaTarget = when (minecraft) {
-        "1.21.1" -> 21
+    javaVersion = when {
+        minecraft >= "26" -> 25
+        minecraft >= "1.21" -> 21
         else -> throw IllegalArgumentException("Please store the java version for ${property("deps.minecraft")} in build.gradle.kts!")
     }
 
@@ -54,13 +55,13 @@ modstitch {
     metadata {
         modId = mod.id
         modName = mod.name
-        modVersion = "${mod.version}-$loader"
+        modVersion = "${mod.version}+$name"
         modGroup = mod.group
         modAuthor = mod.authors
         modLicense = mod.license
         modDescription = mod.description
 
-        fun <K, V> MapProperty<K, V>.populate(block: MapProperty<K, V>.() -> Unit) {
+        fun <K: Any, V: Any> MapProperty<K, V>.populate(block: MapProperty<K, V>.() -> Unit) {
             block()
         }
 
@@ -70,6 +71,7 @@ modstitch {
             put("mod_issues", mod.issues)
             put("mod_author_list", mod.authors.split(", ").joinToString("\",\""))
             prop("deps.minecraft_range") { put("minecraft_range", it) }
+            prop("deps.neoforge_range") { put("neoforge_range", it) }
         }
     }
 
@@ -92,16 +94,16 @@ modstitch {
                     ideConfigGenerated(true)
                 }
             }
+
+            mixin.useLegacyMixinAp = false
         }
     }
 
     // ModDevGradle (NeoForge, Forge, Forgelike)
     moddevgradle {
-        enable {
-            prop("deps.neoforge") { neoForgeVersion = it }
-        }
+        prop("deps.neoforge") { neoForgeVersion = it }
 
-        configureNeoforge {
+        configureNeoForge {
             runs {
                 register("testClient") {
                     client()
@@ -114,31 +116,48 @@ modstitch {
     mixin {
         addMixinsToModManifest = true
         configs.register(mod.id)
+        if (minecraft >= "26") configs.register("${mod.id}+26")
+    }
+}
+
+modstitch.onEnable {
+    modstitch.moddevgradle {
+        tasks.named("createMinecraftArtifacts") {
+            dependsOn("stonecutterGenerate")
+        }
+    }
+
+    val finalJarTasks = listOf(
+        modstitch.finalJarTask
+    )
+
+    tasks.register<Copy>("buildAndCollect") {
+        group = "build"
+
+        finalJarTasks.forEach { jar ->
+            dependsOn(jar)
+            from(jar.flatMap { it.archiveFile })
+        }
+
+        into(rootProject.layout.buildDirectory.file("libs/${mod.version}"))
+        dependsOn("build")
     }
 }
 
 tasks.named("generateModMetadata") {
     dependsOn("stonecutterGenerate")
 }
-modstitch.moddevgradle {
-    tasks.named("createMinecraftArtifacts") {
-        dependsOn("stonecutterGenerate")
-    }
+
+tasks.named("jar") {
+    dependsOn("filterArtifacts")
 }
-
-val finalJarTasks = listOf(
-    modstitch.finalJarTask
-)
-tasks.register<Copy>("buildAndCollect") {
-    group = "build"
-
-    finalJarTasks.forEach { jar ->
-        dependsOn(jar)
-        from(jar.flatMap { it.archiveFile })
-    }
-
-    into(rootProject.layout.buildDirectory.file("libs/${mod.version}"))
-    dependsOn("build")
+tasks.register<Delete>("filterArtifacts") {
+    if (modstitch.isLoom)
+        delete(layout.buildDirectory.dir("resources/main/META-INF"))
+    else if (modstitch.isModDevGradleRegular)
+        delete(layout.buildDirectory.file("resources/main/META-INF/mods.toml"))
+    else
+        delete(layout.buildDirectory.file("resources/main/META-INF/neoforge.mods.toml"))
 }
 
 tasks.register<Delete>("buildCollectAndClean") {
@@ -148,10 +167,4 @@ tasks.register<Delete>("buildCollectAndClean") {
     delete(layout.buildDirectory.dir("devlibs"))
 
     dependsOn("buildAndCollect")
-}
-
-tasks.register<Delete>("deleteBuildCache") {
-    group = "build"
-
-    delete(layout.buildDirectory)
 }

@@ -1,7 +1,5 @@
 package dev.chililisoup.stacksizefix.mixin;
 
-import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.mojang.serialization.DataResult;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.util.Unit;
@@ -12,12 +10,19 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+//? if < 26 || neoforge {
+/*import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+*///?}
+
 @Mixin(ItemStack.class)
 public abstract class ItemStackMixin {
-    @WrapMethod(method = "getMaxStackSize")
+    //? if < 26 || neoforge {
+    /*@WrapMethod(method = "getMaxStackSize")
     public int allowBadStackSizes(Operation<Integer> original) {
         return Math.max(original.call(), ((ItemStack) (Object) this).getCount());
     }
+    *///?}
 
     @Inject(method = "validateComponents", at = @At("HEAD"), cancellable = true)
     private static void validateBadStacks(DataComponentMap components, CallbackInfoReturnable<DataResult<Unit>> cir) {

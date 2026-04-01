@@ -15,7 +15,7 @@ authors = "${mod_author}"
 [[dependencies.${mod_id}]]
 modId = "neoforge"
 type = "required"
-versionRange="[1,)"
+versionRange="${neoforge_range}"
 ordering = "NONE"
 side = "CLIENT"
 
